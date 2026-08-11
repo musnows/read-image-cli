@@ -6,6 +6,12 @@ import { realpathSync } from "node:fs";
 
 import { asReadImageError, ReadImageError } from "./errors.js";
 import {
+  DEFAULT_CONFIG_PATH,
+  loadConfigFile,
+  resolveConfigPath,
+  resolveSettings,
+} from "./config.js";
+import {
   DEFAULT_MAX_IMAGE_BYTES,
   DEFAULT_TIMEOUT_MS,
   loadImage,
@@ -17,7 +23,6 @@ import {
   requestVision,
 } from "./openai.js";
 
-const DEFAULT_PROMPT = "Describe this image in detail.";
 const require = createRequire(import.meta.url);
 const packageInfo = require("../package.json");
 
@@ -41,16 +46,10 @@ function parsePositiveInteger(value, option) {
   return parsed;
 }
 
-export function parseArgs(argv, env = process.env) {
+export function parseArgs(argv) {
   const options = {
     json: false,
-    prompt: DEFAULT_PROMPT,
-    model: env.OPENAI_MODEL || DEFAULT_MODEL,
-    baseUrl: env.OPENAI_BASE_URL || DEFAULT_BASE_URL,
-    detail: "auto",
-    maxBytes: DEFAULT_MAX_IMAGE_BYTES,
-    timeoutMs: DEFAULT_TIMEOUT_MS,
-    allowPrivateNetwork: false,
+    allowPrivateNetwork: undefined,
   };
   let input;
   let showHelp = false;
@@ -70,6 +69,8 @@ export function parseArgs(argv, env = process.env) {
       options.model = takeValue(argv, ++index, argument);
     } else if (argument === "--base-url") {
       options.baseUrl = takeValue(argv, ++index, argument);
+    } else if (argument === "--config") {
+      options.configPath = takeValue(argv, ++index, argument);
     } else if (argument === "--detail") {
       options.detail = takeValue(argv, ++index, argument);
       if (!["auto", "low", "high"].includes(options.detail)) {
@@ -109,6 +110,7 @@ Options:
   -p, --prompt <text>            Prompt sent with the image
   -m, --model <model>            Vision model (default: OPENAI_MODEL or ${DEFAULT_MODEL})
   --base-url <url>               API base URL (default: OPENAI_BASE_URL or ${DEFAULT_BASE_URL})
+  --config <path>                Config file (default: ${DEFAULT_CONFIG_PATH})
   --detail <auto|low|high>       Image detail level (default: auto)
   --max-tokens <n>               Maximum completion tokens
   --max-bytes <n>                Maximum image size in bytes (default: ${DEFAULT_MAX_IMAGE_BYTES})
@@ -118,9 +120,16 @@ Options:
   -v, --version                  Show the package version
 
 Environment:
-  OPENAI_API_KEY                 API key; required
+  OPENAI_API_KEY                 API key; required if config has no apiKey
   OPENAI_BASE_URL                API base URL; defaults to the OpenAI /v1 endpoint
   OPENAI_MODEL                   Vision model; defaults to ${DEFAULT_MODEL}
+  READ_IMAGE_CONFIG              Optional config file path override
+  READ_IMAGE_PROMPT              Prompt override
+  READ_IMAGE_DETAIL              Image detail override
+  READ_IMAGE_MAX_TOKENS           Maximum completion tokens override
+  READ_IMAGE_MAX_BYTES            Maximum image size override
+  READ_IMAGE_TIMEOUT_MS           Network timeout override
+  READ_IMAGE_ALLOW_PRIVATE_NETWORK  Private network URL override
 `;
 }
 
@@ -152,7 +161,7 @@ export async function main(argv = process.argv.slice(2), env = process.env, io =
 }) {
   let parsed;
   try {
-    parsed = parseArgs(argv, env);
+    parsed = parseArgs(argv);
     if (parsed.showHelp) {
       writeOutput(io, helpText());
       return 0;
@@ -162,25 +171,30 @@ export async function main(argv = process.argv.slice(2), env = process.env, io =
       return 0;
     }
 
+    const configPath = resolveConfigPath(parsed.configPath, env);
+    const config = await loadConfigFile(configPath, {
+      optional: parsed.configPath === undefined && !env.READ_IMAGE_CONFIG,
+    });
+    const settings = resolveSettings({ config, env, cli: parsed });
     const image = await loadImage(parsed.input, {
-      maxBytes: parsed.maxBytes,
-      timeoutMs: parsed.timeoutMs,
-      allowPrivateNetwork: parsed.allowPrivateNetwork,
+      maxBytes: settings.maxBytes,
+      timeoutMs: settings.timeoutMs,
+      allowPrivateNetwork: settings.allowPrivateNetwork,
     });
     const response = await requestVision({
       image,
-      prompt: parsed.prompt,
-      model: parsed.model,
-      baseUrl: parsed.baseUrl,
-      apiKey: env.OPENAI_API_KEY,
-      detail: parsed.detail,
-      maxTokens: parsed.maxTokens,
-      timeoutMs: parsed.timeoutMs,
+      prompt: settings.prompt,
+      model: settings.model,
+      baseUrl: settings.baseUrl,
+      apiKey: settings.apiKey,
+      detail: settings.detail,
+      maxTokens: settings.maxTokens,
+      timeoutMs: settings.timeoutMs,
     });
 
     const result = {
       text: extractResponseText(response),
-      model: response.model || parsed.model,
+      model: response.model || settings.model,
       id: response.id || null,
       usage: response.usage || null,
       image: {

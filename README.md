@@ -8,11 +8,37 @@
 npm install -g @musnows/read-image-cli
 ```
 
-Node.js 版本要求为 18.17 或更高版本。运行前设置 API Key：
+Node.js 版本要求为 18.17 或更高版本。可以直接使用环境变量：
 
 ```bash
 export OPENAI_API_KEY="your-api-key"
 ```
+
+也可以使用配置文件 `~/.read-image-cli/config.json`：
+
+```json
+{
+  "apiKey": "your-api-key",
+  "baseUrl": "https://api.openai.com/v1",
+  "model": "gpt-4o-mini",
+  "prompt": "Describe this image in detail.",
+  "detail": "auto",
+  "maxTokens": 1024,
+  "maxBytes": 20971520,
+  "timeoutMs": 15000,
+  "allowPrivateNetwork": false
+}
+```
+
+配置文件所在目录不存在时不会报错；如果显式传入 `--config` 或设置 `READ_IMAGE_CONFIG`，但文件不存在，则会报错。配置文件包含 API Key 时建议限制权限：
+
+```bash
+mkdir -p ~/.read-image-cli
+chmod 700 ~/.read-image-cli
+chmod 600 ~/.read-image-cli/config.json
+```
+
+配置优先级从高到低为：命令行参数、环境变量、`~/.read-image-cli/config.json`、内置默认值。环境变量会覆盖配置文件中的同一项。
 
 ## 用法
 
@@ -87,6 +113,7 @@ read-image "http://127.0.0.1:8080/image.png" --allow-private-network --json
 | `-p, --prompt <text>` | 图片分析提示词 |
 | `-m, --model <model>` | 视觉模型 |
 | `--base-url <url>` | OpenAI 兼容 API 基地址 |
+| `--config <path>` | 使用指定配置文件 |
 | `--detail <auto\|low\|high>` | 图片细节等级 |
 | `--max-tokens <n>` | 最大输出 token 数 |
 | `--max-bytes <n>` | 图片大小上限，默认 20 MiB |
@@ -95,9 +122,15 @@ read-image "http://127.0.0.1:8080/image.png" --allow-private-network --json
 
 环境变量：
 
-- `OPENAI_API_KEY`：必填。
+- `OPENAI_API_KEY`：可选；如果配置文件未提供 `apiKey`，则必填。
 - `OPENAI_BASE_URL`：可选，默认 `https://api.openai.com/v1`。
 - `OPENAI_MODEL`：可选，默认 `gpt-4o-mini`。
+- `READ_IMAGE_CONFIG`：可选，覆盖默认配置文件路径。
+- `READ_IMAGE_PROMPT`、`READ_IMAGE_DETAIL`：可选，覆盖配置文件对应字段。
+- `READ_IMAGE_MAX_TOKENS`、`READ_IMAGE_MAX_BYTES`、`READ_IMAGE_TIMEOUT_MS`：可选，必须是正整数。
+- `READ_IMAGE_ALLOW_PRIVATE_NETWORK`：可选，接受 `true`、`false`、`1`、`0` 等布尔值。
+
+配置文件使用 camelCase 字段名；同时接受对应的大写环境变量名作为配置文件字段，例如 `OPENAI_API_KEY`，但真正的环境变量始终优先。
 
 ## 开源许可
 

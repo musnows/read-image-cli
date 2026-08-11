@@ -1,6 +1,6 @@
 {
   "name": "@musnows/read-image-cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Secure image-to-text CLI for OpenAI-compatible vision APIs",
   "type": "module",
   "bin": {
