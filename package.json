@@ -1,0 +1,42 @@
+{
+  "name": "@musnows/read-image-cli",
+  "version": "0.1.0",
+  "description": "Secure image-to-text CLI for OpenAI-compatible vision APIs",
+  "type": "module",
+  "bin": {
+    "read-image": "src/cli.js"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "check": "node --check src/cli.js && node --check src/image-input.js && node --check src/openai.js",
+    "pack:check": "npm pack --dry-run"
+  },
+  "keywords": [
+    "cli",
+    "image",
+    "vision",
+    "openai",
+    "openai-compatible",
+    "image-to-text"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/musnows/read-image-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/musnows/read-image-cli/issues"
+  },
+  "homepage": "https://github.com/musnows/read-image-cli#readme"
+}
