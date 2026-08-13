@@ -16,9 +16,9 @@ export const DEFAULT_PROMPT = "Describe this image in detail.";
 export const DEFAULT_CONFIG_PATH = path.join(os.homedir(), ".read-image-cli", "config.json");
 
 const CONFIG_ALIASES = {
-  apiKey: ["apiKey", "OPENAI_API_KEY"],
-  baseUrl: ["baseUrl", "OPENAI_BASE_URL"],
-  model: ["model", "OPENAI_MODEL"],
+  apiKey: ["apiKey", "READ_IMAGE_API_KEY"],
+  baseUrl: ["baseUrl", "READ_IMAGE_BASE_URL"],
+  model: ["model", "READ_IMAGE_MODEL"],
   prompt: ["prompt", "READ_IMAGE_PROMPT"],
   detail: ["detail", "READ_IMAGE_DETAIL"],
   maxTokens: ["maxTokens", "READ_IMAGE_MAX_TOKENS"],
@@ -92,14 +92,14 @@ function parseBoolean(value, label) {
 
 function readEnvironment(env) {
   const result = {};
-  if (env.OPENAI_API_KEY !== undefined) {
-    result.apiKey = env.OPENAI_API_KEY;
+  if (env.READ_IMAGE_API_KEY !== undefined) {
+    result.apiKey = env.READ_IMAGE_API_KEY;
   }
-  if (env.OPENAI_BASE_URL) {
-    result.baseUrl = env.OPENAI_BASE_URL;
+  if (env.READ_IMAGE_BASE_URL) {
+    result.baseUrl = env.READ_IMAGE_BASE_URL;
   }
-  if (env.OPENAI_MODEL) {
-    result.model = env.OPENAI_MODEL;
+  if (env.READ_IMAGE_MODEL) {
+    result.model = env.READ_IMAGE_MODEL;
   }
   if (env.READ_IMAGE_PROMPT !== undefined) {
     result.prompt = env.READ_IMAGE_PROMPT;

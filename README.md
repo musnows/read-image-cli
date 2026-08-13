@@ -8,10 +8,12 @@
 npm install -g @musnows/read-image-cli
 ```
 
-Node.js 版本要求为 18.17 或更高版本。可以直接使用环境变量：
+Node.js 版本要求为 18.17 或更高版本。可以直接使用 CLI 专用环境变量：
 
 ```bash
-export OPENAI_API_KEY="your-api-key"
+export READ_IMAGE_API_KEY="your-api-key"
+export READ_IMAGE_BASE_URL="https://api.openai.com/v1"
+export READ_IMAGE_MODEL="gpt-4o-mini"
 ```
 
 也可以使用配置文件 `~/.read-image-cli/config.json`：
@@ -54,7 +56,7 @@ read-image /absolute/path/to/image.png --json
 read-image "https://example.com/image" --json
 ```
 
-默认请求 `POST /v1/chat/completions`，默认模型是 `gpt-4o-mini`，默认提示词是 `Describe this image in detail.`。可通过参数或环境变量调整：
+默认请求 `POST /v1/chat/completions`，默认模型是 `gpt-4o-mini`，默认提示词是 `Describe this image in detail.`。可通过参数或 CLI 专用环境变量调整：
 
 ```bash
 read-image /absolute/path/to/image.jpg \
@@ -67,8 +69,8 @@ read-image /absolute/path/to/image.jpg \
 使用其他 OpenAI 兼容服务：
 
 ```bash
-export OPENAI_BASE_URL="https://api.example.com/v1"
-export OPENAI_MODEL="my-vision-model"
+export READ_IMAGE_BASE_URL="https://api.example.com/v1"
+export READ_IMAGE_MODEL="my-vision-model"
 read-image "https://example.com/image" --json
 ```
 
@@ -122,15 +124,15 @@ read-image "http://127.0.0.1:8080/image.png" --allow-private-network --json
 
 环境变量：
 
-- `OPENAI_API_KEY`：可选；如果配置文件未提供 `apiKey`，则必填。
-- `OPENAI_BASE_URL`：可选，默认 `https://api.openai.com/v1`。
-- `OPENAI_MODEL`：可选，默认 `gpt-4o-mini`。
+- `READ_IMAGE_API_KEY`：可选；如果配置文件未提供 `apiKey`，则必填。
+- `READ_IMAGE_BASE_URL`：可选，默认 `https://api.openai.com/v1`。
+- `READ_IMAGE_MODEL`：可选，默认 `gpt-4o-mini`。
 - `READ_IMAGE_CONFIG`：可选，覆盖默认配置文件路径。
 - `READ_IMAGE_PROMPT`、`READ_IMAGE_DETAIL`：可选，覆盖配置文件对应字段。
 - `READ_IMAGE_MAX_TOKENS`、`READ_IMAGE_MAX_BYTES`、`READ_IMAGE_TIMEOUT_MS`：可选，必须是正整数。
 - `READ_IMAGE_ALLOW_PRIVATE_NETWORK`：可选，接受 `true`、`false`、`1`、`0` 等布尔值。
 
-配置文件使用 camelCase 字段名；同时接受对应的大写环境变量名作为配置文件字段，例如 `OPENAI_API_KEY`，但真正的环境变量始终优先。
+配置文件使用 camelCase 字段名；也接受对应的 `READ_IMAGE_*` 字段名。CLI 不读取通用的 `OPENAI_API_KEY`、`OPENAI_BASE_URL` 或 `OPENAI_MODEL` 环境变量，避免被其他工具的全局配置意外覆盖。
 
 ## 开源许可
 

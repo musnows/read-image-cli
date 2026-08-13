@@ -18,15 +18,15 @@ export function resolveChatCompletionsUrl(baseUrl) {
   try {
     url = new URL(baseUrl);
   } catch (error) {
-    throw new ReadImageError("INVALID_BASE_URL", "OPENAI_BASE_URL is invalid.", { cause: error });
+    throw new ReadImageError("INVALID_BASE_URL", "READ_IMAGE_BASE_URL is invalid.", { cause: error });
   }
 
   if (url.protocol !== "http:" && url.protocol !== "https:") {
-    throw new ReadImageError("INVALID_BASE_URL", "OPENAI_BASE_URL must use http:// or https://.");
+    throw new ReadImageError("INVALID_BASE_URL", "READ_IMAGE_BASE_URL must use http:// or https://.");
   }
 
   if (url.username || url.password || url.search || url.hash) {
-    throw new ReadImageError("INVALID_BASE_URL", "OPENAI_BASE_URL must not contain credentials, a query, or a fragment.");
+    throw new ReadImageError("INVALID_BASE_URL", "READ_IMAGE_BASE_URL must not contain credentials, a query, or a fragment.");
   }
 
   const normalized = url.toString().replace(/\/+$/, "");
@@ -89,7 +89,7 @@ export async function requestVision({
   fetchImpl = globalThis.fetch,
 }) {
   if (!apiKey) {
-    throw new ReadImageError("MISSING_API_KEY", "OPENAI_API_KEY is required.");
+    throw new ReadImageError("MISSING_API_KEY", "READ_IMAGE_API_KEY or config.apiKey is required.");
   }
 
   if (typeof fetchImpl !== "function") {
