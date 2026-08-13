@@ -63,8 +63,10 @@ export function parseArgs(argv) {
       showHelp = true;
     } else if (argument === "--version" || argument === "-v") {
       showVersion = true;
-    } else if (argument === "--prompt" || argument === "-p") {
-      options.prompt = takeValue(argv, ++index, argument);
+    } else if (argument === "--append-prompt") {
+      options.appendPrompt = takeValue(argv, ++index, argument);
+    } else if (argument === "--system-prompt") {
+      options.systemPrompt = takeValue(argv, ++index, argument);
     } else if (argument === "--model" || argument === "-m") {
       options.model = takeValue(argv, ++index, argument);
     } else if (argument === "--base-url") {
@@ -107,7 +109,8 @@ Read an image with an OpenAI-compatible vision chat completion API.
 
 Options:
   --json                         Output one machine-readable JSON object
-  -p, --prompt <text>            Prompt sent with the image
+  --append-prompt <text>         Add an XML-wrapped prompt to the system prompt
+  --system-prompt <text>         Replace the built-in system prompt
   -m, --model <model>            Vision model (default: READ_IMAGE_MODEL or ${DEFAULT_MODEL})
   --base-url <url>               API base URL (default: READ_IMAGE_BASE_URL or ${DEFAULT_BASE_URL})
   --config <path>                Config file (default: ${DEFAULT_CONFIG_PATH})
@@ -124,7 +127,6 @@ Environment:
   READ_IMAGE_BASE_URL            API base URL; defaults to the OpenAI /v1 endpoint
   READ_IMAGE_MODEL               Vision model; defaults to ${DEFAULT_MODEL}
   READ_IMAGE_CONFIG              Optional config file path override
-  READ_IMAGE_PROMPT              Prompt override
   READ_IMAGE_DETAIL              Image detail override
   READ_IMAGE_MAX_TOKENS           Maximum completion tokens override
   READ_IMAGE_MAX_BYTES            Maximum image size override
@@ -183,7 +185,8 @@ export async function main(argv = process.argv.slice(2), env = process.env, io =
     });
     const response = await requestVision({
       image,
-      prompt: settings.prompt,
+      systemPrompt: settings.systemPrompt,
+      appendPrompt: settings.appendPrompt,
       model: settings.model,
       baseUrl: settings.baseUrl,
       apiKey: settings.apiKey,

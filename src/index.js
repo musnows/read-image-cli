@@ -1,7 +1,6 @@
 export { ReadImageError } from "./errors.js";
 export {
   DEFAULT_CONFIG_PATH,
-  DEFAULT_PROMPT,
   loadConfigFile,
   resolveConfigPath,
   resolveSettings,
@@ -19,6 +18,9 @@ export {
 export {
   DEFAULT_BASE_URL,
   DEFAULT_MODEL,
+  DEFAULT_SYSTEM_PROMPT,
+  buildSystemPrompt,
+  escapeXmlText,
   extractResponseText,
   requestVision,
   resolveChatCompletionsUrl,

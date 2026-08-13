@@ -10,16 +10,17 @@ import {
 import {
   DEFAULT_BASE_URL,
   DEFAULT_MODEL,
+  DEFAULT_SYSTEM_PROMPT,
 } from "./openai.js";
 
-export const DEFAULT_PROMPT = "Describe this image in detail.";
 export const DEFAULT_CONFIG_PATH = path.join(os.homedir(), ".read-image-cli", "config.json");
 
 const CONFIG_ALIASES = {
   apiKey: ["apiKey", "READ_IMAGE_API_KEY"],
   baseUrl: ["baseUrl", "READ_IMAGE_BASE_URL"],
   model: ["model", "READ_IMAGE_MODEL"],
-  prompt: ["prompt", "READ_IMAGE_PROMPT"],
+  systemPrompt: ["systemPrompt"],
+  appendPrompt: ["appendPrompt"],
   detail: ["detail", "READ_IMAGE_DETAIL"],
   maxTokens: ["maxTokens", "READ_IMAGE_MAX_TOKENS"],
   maxBytes: ["maxBytes", "READ_IMAGE_MAX_BYTES"],
@@ -31,7 +32,8 @@ const DEFAULTS = {
   apiKey: undefined,
   baseUrl: DEFAULT_BASE_URL,
   model: DEFAULT_MODEL,
-  prompt: DEFAULT_PROMPT,
+  systemPrompt: DEFAULT_SYSTEM_PROMPT,
+  appendPrompt: undefined,
   detail: "auto",
   maxTokens: undefined,
   maxBytes: DEFAULT_MAX_IMAGE_BYTES,
@@ -101,9 +103,6 @@ function readEnvironment(env) {
   if (env.READ_IMAGE_MODEL) {
     result.model = env.READ_IMAGE_MODEL;
   }
-  if (env.READ_IMAGE_PROMPT !== undefined) {
-    result.prompt = env.READ_IMAGE_PROMPT;
-  }
   if (env.READ_IMAGE_DETAIL !== undefined) {
     result.detail = env.READ_IMAGE_DETAIL;
   }
@@ -126,7 +125,7 @@ function readEnvironment(env) {
 }
 
 function validateSettings(settings) {
-  for (const field of ["apiKey", "baseUrl", "model", "prompt"]) {
+  for (const field of ["apiKey", "baseUrl", "model", "systemPrompt", "appendPrompt"]) {
     if (settings[field] !== undefined && typeof settings[field] !== "string") {
       throw new ReadImageError("INVALID_CONFIG", `${field} must be a string.`);
     }

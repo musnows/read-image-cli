@@ -23,7 +23,8 @@ export READ_IMAGE_MODEL="gpt-4o-mini"
   "apiKey": "your-api-key",
   "baseUrl": "https://api.openai.com/v1",
   "model": "gpt-4o-mini",
-  "prompt": "Describe this image in detail.",
+  "systemPrompt": "You are a reliable image understanding assistant.",
+  "appendPrompt": "Return the answer in Chinese.",
   "detail": "auto",
   "maxTokens": 1024,
   "maxBytes": 20971520,
@@ -40,7 +41,7 @@ chmod 700 ~/.read-image-cli
 chmod 600 ~/.read-image-cli/config.json
 ```
 
-配置优先级从高到低为：命令行参数、环境变量、`~/.read-image-cli/config.json`、内置默认值。环境变量会覆盖配置文件中的同一项。
+配置优先级从高到低为：命令行参数、环境变量、`~/.read-image-cli/config.json`、内置默认值。环境变量会覆盖配置文件中的同一项；`systemPrompt` 和 `appendPrompt` 只支持配置文件与命令行参数，不支持环境变量。
 
 ## 用法
 
@@ -60,9 +61,34 @@ read-image "https://example.com/image" --json
 
 ```bash
 read-image /absolute/path/to/image.jpg \
-  --prompt "Extract all visible text and preserve the original line breaks." \
   --model gpt-4o-mini \
   --detail high \
+  --json
+```
+
+追加 prompt 会被 XML 包装后放入 system message，并与内置 system prompt 一起发送：
+
+```bash
+read-image /absolute/path/to/image.jpg \
+  --append-prompt "只输出图片中的中文文字。" \
+  --json
+```
+
+实际发送的 system message 结构类似：
+
+```xml
+内置 system prompt
+<additional-prompt>
+只输出图片中的中文文字。
+</additional-prompt>
+```
+
+`--system-prompt` 会完整覆盖内置 system prompt；如果同时指定 `--append-prompt`，追加内容仍会放在覆盖后的 system prompt 后面：
+
+```bash
+read-image /absolute/path/to/image.jpg \
+  --system-prompt "你是一个严格的 OCR 助手，只返回识别到的文本。" \
+  --append-prompt "保留原始换行。" \
   --json
 ```
 
@@ -112,7 +138,8 @@ read-image "http://127.0.0.1:8080/image.png" --allow-private-network --json
 | 参数 | 说明 |
 | --- | --- |
 | `--json` | 输出机器可读 JSON |
-| `-p, --prompt <text>` | 图片分析提示词 |
+| `--append-prompt <text>` | 追加 XML 包装的 prompt |
+| `--system-prompt <text>` | 覆盖内置 system prompt |
 | `-m, --model <model>` | 视觉模型 |
 | `--base-url <url>` | OpenAI 兼容 API 基地址 |
 | `--config <path>` | 使用指定配置文件 |
@@ -128,11 +155,11 @@ read-image "http://127.0.0.1:8080/image.png" --allow-private-network --json
 - `READ_IMAGE_BASE_URL`：可选，默认 `https://api.openai.com/v1`。
 - `READ_IMAGE_MODEL`：可选，默认 `gpt-4o-mini`。
 - `READ_IMAGE_CONFIG`：可选，覆盖默认配置文件路径。
-- `READ_IMAGE_PROMPT`、`READ_IMAGE_DETAIL`：可选，覆盖配置文件对应字段。
+- `READ_IMAGE_DETAIL`：可选，覆盖配置文件对应字段。
 - `READ_IMAGE_MAX_TOKENS`、`READ_IMAGE_MAX_BYTES`、`READ_IMAGE_TIMEOUT_MS`：可选，必须是正整数。
 - `READ_IMAGE_ALLOW_PRIVATE_NETWORK`：可选，接受 `true`、`false`、`1`、`0` 等布尔值。
 
-配置文件使用 camelCase 字段名；也接受对应的 `READ_IMAGE_*` 字段名。CLI 不读取通用的 `OPENAI_API_KEY`、`OPENAI_BASE_URL` 或 `OPENAI_MODEL` 环境变量，避免被其他工具的全局配置意外覆盖。
+配置文件使用 camelCase 字段名；除 `systemPrompt` 和 `appendPrompt` 外，也接受对应的 `READ_IMAGE_*` 字段名。CLI 不读取通用的 `OPENAI_API_KEY`、`OPENAI_BASE_URL` 或 `OPENAI_MODEL` 环境变量，避免被其他工具的全局配置意外覆盖。追加 prompt 中的 XML 特殊字符会被转义。
 
 ## 开源许可
 
